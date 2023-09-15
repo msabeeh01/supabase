@@ -1,13 +1,15 @@
 import Image from 'next/image'
 import { Inter } from 'next/font/google'
+import { useEffect, useState } from 'react'
 
 //lib imports
 import { supabase } from '@/lib/supabase'
-import { useEffect, useState } from 'react'
+
 
 
 //context import
 import withAuth from '@/context/withAuth'
+import NavBar from '@/components/Header'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -20,7 +22,6 @@ function Home() {
 
   useEffect(() => {
     getID().then((id) => {
-      console.log('MY ID', id)
       if (id) handleImageFetch(id)
       setUserID(id)
     })
@@ -80,6 +81,8 @@ function Home() {
 
   return (
     <div className='flex flex-col items-center justify-center'>
+      <NavBar />
+
       <div className='flex flex-col'>
         <input type='file' onChange={(e) => handleUpload(e.target.files[0])} />
 

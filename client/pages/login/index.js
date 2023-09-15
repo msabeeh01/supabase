@@ -19,7 +19,6 @@ const Login = () => {
     if(error) {
       setError(error)
     }
-    console.log(data)
   }
 
   useEffect(() => {
