@@ -5,29 +5,24 @@ import { useEffect, useState } from 'react'
 //lib imports
 import { supabase } from '@/lib/supabase'
 
-
-
 //context import
 import withAuth from '@/context/withAuth'
 import NavBar from '@/components/Header'
 
-const inter = Inter({ subsets: ['latin'] })
 
 function Home() {
   //const [data, setData] = useState(null)
   const [allImages, setAllImages] = useState([])
   const [userID, setUserID] = useState(null)
 
-
-
   useEffect(() => {
-    getID().then((id) => {
-      if (id) handleImageFetch(id)
+    getID().then(async (id) => {
       setUserID(id)
     })
-  }, [])
+    handleImageFetch()
+  }, [userID])
 
-
+  //function to upload image to supabase storage
   const handleUpload = async (file) => {
     const { data, error } = await supabase.storage.from(`images`).upload(`${userID}/${file.name}`, file)
     if (error) {
@@ -48,35 +43,17 @@ function Home() {
     }
   }
 
-  const handleImageFetch = async (userID) => {
-    const { data, error } = await supabase
-      .storage
-      .from('images')
-      .list(`${userID}`, {
-        limit: 100,
-        offset: 0
-      })
-    if (error) {
-      console.log(error)
-    }
-    else {
-      const signedUrlPromises = data.map(async (image) => {
-        const { data, error } = await supabase
-          .storage
-          .from(`images`)
-          .createSignedUrl(`${userID}/${image.name}`, 60)
-        if (error) {
-          console.log(error)
-          return null
-        }
-        return data.signedUrl
-      })
-
-      const signedUrls = await Promise.all(signedUrlPromises)
-      setAllImages(signedUrls.filter(url => url !== null))
-
-    }
-
+  //function to fetch images from supabase storage
+  const handleImageFetch = async () => {
+    const res = await fetch('api/images', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ userID })
+    })
+    const data = await res.json()
+    setAllImages(data)
   }
 
   return (
@@ -90,7 +67,7 @@ function Home() {
           {allImages && allImages.map((image, i) => {
             return (
               <div key={i} className='w-[25rem] h-[25rem] overflow-hidden flex'>
-                <img src={image} className='h-full w-full object-cover' />
+                <img src={image.signedUrl} className='h-full w-full object-cover' />
               </div>
             )
           })}
